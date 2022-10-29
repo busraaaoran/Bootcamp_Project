@@ -6,6 +6,7 @@ from models import *
 db = MongoEngine()
 app = Flask(__name__)
 
+#Database configuration for connecting MongoDB with our Flask app
 app.config['MONGODB_SETTINGS'] = [{
    
     "db": "blogDb",
