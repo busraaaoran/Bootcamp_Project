@@ -14,10 +14,7 @@ class User(me.Document):
     profilePicture = me.ImageField()
     registrationDate = me.DateField()
 
-    def create_slug(self):
-        string_to_slugify = self.firstName + self.lastName
-        slug = slugify(string_to_slugify + " " + get_random())
-        self.slug = slug
+    
 
 class Category(me.Document):
     _id = me.IntField()
@@ -33,10 +30,7 @@ class Article(me.Document):
     text = me.StringField()
     slug = me.StringField(unique=True)
 
-    def create_slug(self):
-        string_to_slugify = self.title
-        slug = slugify(string_to_slugify + " " + get_random())
-        self.slug = slug
+    
 
 
 

@@ -28,7 +28,7 @@ category_fields = {
 
 @app.route("/")
 def hello():
-    categories = User.objects(_id=1).first()
+    categories = User.objects(slug='hamza-oran-4932e554').first()
     return f"<p>{categories.firstName}</p>"
 
 
@@ -52,9 +52,10 @@ class ArticlesController(Resource):
         Article.objects().get(_id=article_id).update(**data)
         return "", 204
 
-    def delete(self, article_id):
-        Article.objects().get(_id=article_id).delete()
-        return f"Article with {article_id} id number is deleted!", 204
+    #formatted string should be fixed
+    def delete(self, slug):
+        Article.objects(slug=slug).delete()
+        return f"Article with {slug} id number is deleted!", 204
 
 
 class UsersController(Resource):
@@ -67,10 +68,13 @@ class UsersController(Resource):
     def post(self):
         data = request.get_json(force=True)
         data['registrationDate'] = datetime.utcnow()
+        data['slug'] = create_slug(data['firstName'],data['lastName'])
         new_user = User(**data).save()
-        id = new_user._id
+        id = new_user.id
 
         return {'id':str(id)}, 201
+
+
 
     def put(self, user_id):
         data = request.get_json(force=True)
@@ -83,8 +87,8 @@ class UsersController(Resource):
 
 class SingleUserView(Resource):
 
-    def get(self, user_id):
-        user = User.objects().get(_id=user_id).to_json()
+    def get(self, slug):
+        user = User.objects(slug=slug).first().to_json()
         if not user:
             abort(404, message="Sorry but there is no such user registered to the database!")
         return user, 200
@@ -92,6 +96,7 @@ class SingleUserView(Resource):
     def post(self):
         data = request.get_json(force=True)
         data['registrationDate'] = datetime.utcnow()
+        data['slug'] = create_slug(data['firstName'],data['lastName'])
         new_user = User(**data).save()
         id = new_user.id
 
@@ -117,8 +122,8 @@ class SingleUserView(Resource):
         return f"User with {user_id} id number deleted!", 204
 
 class SingleArticleView(Resource):
-    def get(self,article_id):
-        article = Article.objects().get(_id=article_id).to_json()
+    def get(self,slug):
+        article = Article.objects(slug=slug).first().to_json()
         if not article:
             abort(404,message="Sorry but there is no such article here")
         return article, 200
@@ -126,19 +131,21 @@ class SingleArticleView(Resource):
     def post(self):
         data = request.get_json()
         data['uploadDate'] = datetime.utcnow()
-        new_article = Article(data['title'], data['author'], data['category'], data['uploadDate'], data['articleImage'], data['text'])
-        new_article.save()
+        data['slug'] = create_article_slug(data['title'])
+        new_article = Article(**data).save()
 
         return new_article, 201
 
-    def put(self, article_id):
+    def put(self, slug):
         data = request.get_json(force=True)
-        Article.objects().get(_id=article_id).update(**data)
+        Article.objects().get(slug=slug).update(**data)
         return "", 204
 
-    def delete(self, article_id):
-        Article.objects().get(_id=article_id).delete()
-        return f"Article with {article_id} id number is deleted!", 204
+    def delete(self, slug):
+        article = Article.objects().get(slug=slug).first()
+        article_name = article.title
+        article.delete()
+        return f"Article {article_name} is deleted!", 204
 
 class CategoriesController(Resource):
 
@@ -159,8 +166,8 @@ class CategoriesController(Resource):
 api.add_resource(UsersController, '/users')
 api.add_resource(ArticlesController, '/articles')
 api.add_resource(CategoriesController, '/categories')
-api.add_resource(SingleUserView, '/users/<int:user_id>')
-api.add_resource(SingleArticleView, '/articles/<int:article_id>')
+api.add_resource(SingleUserView, '/users/<string:slug>')
+api.add_resource(SingleArticleView, '/articles/<string:slug>')
 
 '''
 category = Category()
