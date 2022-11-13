@@ -1,13 +1,16 @@
 from datetime import datetime
-from flask import Flask, request, session
+from flask import Flask, jsonify, request, session
 from flask_mongoengine import MongoEngine
 from models import *
 from flask_restful import Api, Resource, abort, marshal_with, fields
 import os
+import json
+from serializer import Serializer
 
 db = MongoEngine()
 app = Flask(__name__)
 api = Api(app)
+ser = Serializer(app)
 #defining a secret key is mandatory step for using sessions in flask
 app.secret_key = os.getenv("SECRET_KEY")
 #Database configuration for connecting MongoDB with our Flask app
@@ -28,14 +31,15 @@ category_fields = {
 
 @app.route("/")
 def hello():
-    categories = User.objects(slug='hamza-oran-4932e554').first()
+    categories = User.objects(slug='hamza-oran-0392c94e').first()
     return f"<p>{categories.firstName}</p>"
 
 
 class ArticlesController(Resource):
     def get(self):
         articles = Article.objects().to_json()
-        if not articles:
+        if len(articles) == 0:
+            print("333")
             abort(404,message="Sorry but there is no article here")
         return articles, 200
     
@@ -67,6 +71,7 @@ class UsersController(Resource):
     
     def post(self):
         data = request.get_json(force=True)
+        #data['profilePicture'] = ""
         data['registrationDate'] = datetime.utcnow()
         data['slug'] = create_slug(data['firstName'],data['lastName'])
         new_user = User(**data).save()
@@ -95,6 +100,7 @@ class SingleUserView(Resource):
     
     def post(self):
         data = request.get_json(force=True)
+        #data['profilePicture'] = ""
         data['registrationDate'] = datetime.utcnow()
         data['slug'] = create_slug(data['firstName'],data['lastName'])
         new_user = User(**data).save()
@@ -158,8 +164,8 @@ class CategoriesController(Resource):
     def post(self):
         data = request.get_json()
         new_category = Category(**data).save()
-        
-        return new_category, 201
+        print(new_category)
+        return new_category.to_json(), 201
     
 
 

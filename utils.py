@@ -1,5 +1,7 @@
 from slugify import slugify
 import uuid
+import os
+
 
 def get_random():
     code = str(uuid.uuid4())[:8].replace('-', '').lower()

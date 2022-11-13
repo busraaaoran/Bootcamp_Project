@@ -14,8 +14,6 @@ class User(me.Document):
     profilePicture = me.ImageField()
     registrationDate = me.DateField()
 
-    
-
 class Category(me.Document):
     _id = me.IntField()
     name = me.StringField(unique=True)
